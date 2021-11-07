@@ -30,8 +30,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
 let twilioClient;
-let images = [];
-let image_index = 0;
 let sudoku_array = [
     [0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0],
@@ -53,7 +51,7 @@ function getTwilioClient() {
         config.twilioSecretKey);
 }
 
-async function SaveMedia(mediaItem) {
+function SaveMedia(mediaItem) {
     const { mediaUrl, extension } = mediaItem;
     const fullPath = path.resolve(`${PUBLIC_DIR}/image_from_user.${extension}`);
 
@@ -72,6 +70,19 @@ async function SaveMedia(mediaItem) {
     deleteMediaItem(mediaItem);
 
   }
+//   async function SaveMedia(mediaItem) {
+//     const { mediaUrl, extension } = mediaItem;
+//     const fullPath = path.resolve(`${PUBLIC_DIR}/image_from_user.${extension}`);
+
+//     let res = await fetch(mediaUrl);
+//     return new Promise((resolve, reject) => {
+//         const dest = fs.createWriteStream(fullPath);
+//         res.body.pipe(dest);
+//         deleteMediaItem(mediaItem);
+//         res.body.on("end", () => resolve("it worked"));
+//         dest.on("error", reject);
+//     })
+//   }
 
   function deleteMediaItem(mediaItem) {
     const client = getTwilioClient();
@@ -119,11 +130,13 @@ app.post('/sms', async(req, res) => {
         }
     }
 
-    fs.unlinkSync(`${PUBLIC_DIR}/${mediaItem.filename}`, (e) => console.log(e));
+    // fs.unlinkSync(`${PUBLIC_DIR}/${mediaItem.filename}`, (e) => console.log(e));
+    fs.unlinkSync(`./public/image.jpeg`, (e) => console.log(e));
     console.log(sudoku_array);
     let solved_puzzle = sudoku(sudoku_array)
     console.log(solved_puzzle);
     create_image(solved_puzzle);
+    app.use(express.static('public'));
     
     const messageBody = NumMedia === '0' ?
     'Send us a sudoku puzzle!' :
@@ -141,7 +154,7 @@ app.post('/sms', async(req, res) => {
       .create({
          body: 'The puzzle has been recieved and solved!',
          from: config.twilioPhoneNumber,
-         mediaUrl: ['http://fa54-128-119-202-118.ngrok.io/image.jpeg'],
+         mediaUrl: ['http://d608-128-119-202-122.ngrok.io/image.jpeg'],
          to: SenderNumber
        })
       .then(message => response = message.sid);
